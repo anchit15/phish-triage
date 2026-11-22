@@ -1,0 +1,9 @@
+{
+  "version": "1.0",
+  "publication": "2026-11-01T00:00:00Z",
+  "services": [
+    [["192.0.0.0/8"], ["https://rdap.rir-a.example/"]],
+    [["192.0.2.0/24"], ["https://rdap.rir-b.example/"]],
+    [["198.51.100.0/24"], ["https://rdap.rir-b.example/"]]
+  ]
+}
