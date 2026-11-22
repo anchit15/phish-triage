@@ -83,6 +83,22 @@ def _is_ip(host: str) -> bool:
     return True
 
 
+def url_host(url: str) -> str:
+    """Return the URL's host as written, lowercased and without a trailing dot.
+
+    Args:
+        url: The URL to parse, plain or defanged, with or without a scheme.
+
+    Returns:
+        The host (IPv6 without brackets), or an empty string if there is none.
+    """
+    try:
+        host = urlsplit(normalise(url)).hostname or ""
+    except ValueError:
+        return ""
+    return host.rstrip(".")
+
+
 def canonical_host(url: str) -> str:
     """Return the URL's host, lowercased, without a leading ``www.`` or trailing dot.
 
@@ -92,12 +108,7 @@ def canonical_host(url: str) -> str:
     Returns:
         The canonical host, or an empty string if the URL has no parseable host.
     """
-    try:
-        host = urlsplit(normalise(url)).hostname or ""
-    except ValueError:
-        return ""
-    host = host.rstrip(".")
-    return host.removeprefix("www.")
+    return url_host(url).removeprefix("www.")
 
 
 def has_ip_host(url: str) -> int:
