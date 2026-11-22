@@ -1,0 +1,23 @@
+# Data, models and generated output
+data/
+models/
+reports/
+.cache/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Virtual environments
+.venv/
+venv/
+
+# Python build and tool caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
