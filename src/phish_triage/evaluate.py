@@ -16,7 +16,13 @@ from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_
 from sklearn.pipeline import Pipeline
 
 from phish_triage.defang import defang
-from phish_triage.features import canonical_host, features_frame, host_features, registered_domain
+from phish_triage.features import (
+    SHARED_PLATFORMS,
+    canonical_host,
+    features_frame,
+    host_features,
+    registered_domain,
+)
 from phish_triage.train import MODEL_PATH, SEED, SPLITS_DIR
 
 REPORTS_DIR = Path("reports")
@@ -24,45 +30,6 @@ DEFAULT_THRESHOLD = 0.5
 TOP_FEATURES = 10
 MISS_SAMPLE_SIZE = 25
 MISS_CATEGORIES = ["ip_host", "shared_platform", "plain_looking", "other"]
-
-# Registered domains of free hosting, site-builder, cloud and IPFS-gateway platforms
-# where anyone can publish under a shared domain. Used only for error analysis.
-SHARED_PLATFORMS = frozenset(
-    {
-        "000webhostapp.com",
-        "amazonaws.com",
-        "appspot.com",
-        "azurewebsites.net",
-        "blogspot.com",
-        "cloudflare-ipfs.com",
-        "dweb.link",
-        "firebaseapp.com",
-        "github.io",
-        "glitch.me",
-        "godaddysites.com",
-        "google.com",
-        "herokuapp.com",
-        "infura-ipfs.io",
-        "ipfs.io",
-        "jimdosite.com",
-        "mystrikingly.com",
-        "netlify.app",
-        "pages.dev",
-        "r2.dev",
-        "repl.co",
-        "sharepoint.com",
-        "square.site",
-        "vercel.app",
-        "web.app",
-        "webflow.io",
-        "weebly.com",
-        "windows.net",
-        "wixsite.com",
-        "wordpress.com",
-        "workers.dev",
-        "yolasite.com",
-    }
-)
 
 
 def threshold_metrics(y_true: np.ndarray, proba: np.ndarray, threshold: float) -> dict:
@@ -287,6 +254,58 @@ def summary_markdown(metrics: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def fresh_summary_markdown(fresh: dict) -> str:
+    """Render one fresh-feed evaluation as a short Markdown section (counts only).
+
+    Args:
+        fresh: The dictionary written to ``reports/fresh_<date>.json``.
+
+    Returns:
+        A Markdown section with sizes, metrics, group recall and caveats.
+    """
+    sizes = fresh["sample_sizes"]
+    m = fresh["metrics"]["at_chosen_threshold"]
+    lines = [
+        "",
+        f"### Fresh feed test ({fresh['snapshot_date']})",
+        "",
+        f"{sizes['phishing']:,} live phishing hosts (feeds: OpenPhish, phishunt.io; domains "
+        f"seen in PhiUSIIL removed) vs {sizes['benign']:,} Tranco top-100k homepages "
+        f"(list {fresh['tranco']['list_id']}, seen domains removed). Model "
+        f"{fresh['model']}, threshold {m['threshold']}.",
+        "",
+        "| Recall | False-positive rate | Precision | F1 | ROC-AUC |",
+        "|---|---|---|---|---|",
+        f"| {m['recall']} | {m['false_positive_rate']} | {m['precision']} | {m['f1']} "
+        f"| {fresh['metrics']['roc_auc']} |",
+        "",
+        "| Phishing group | Hosts | Recall |",
+        "|---|---|---|",
+    ]
+    for name, group in fresh["recall_by_group"].items():
+        lines.append(f"| {name} | {group['count']:,} | {group['recall']} |")
+    lines += ["", "Caveats:", ""]
+    lines += [f"- {caveat}" for caveat in fresh["caveats"]]
+    return "\n".join(lines) + "\n"
+
+
+def write_summary(reports_dir: Path = REPORTS_DIR) -> str:
+    """Write ``summary.md`` from ``metrics.json`` plus every ``fresh_*.json`` report.
+
+    Args:
+        reports_dir: Directory holding the JSON reports.
+
+    Returns:
+        The Markdown written.
+    """
+    metrics = json.loads((reports_dir / "metrics.json").read_text(encoding="utf-8"))
+    text = summary_markdown(metrics)
+    for path in sorted(reports_dir.glob("fresh_*.json")):
+        text += fresh_summary_markdown(json.loads(path.read_text(encoding="utf-8")))
+    (reports_dir / "summary.md").write_text(text, encoding="utf-8")
+    return text
+
+
 def main() -> None:
     """Evaluate both saved models and write ``metrics.json`` and ``summary.md``."""
     bundle = joblib.load(MODEL_PATH)
@@ -320,8 +339,7 @@ def main() -> None:
 
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     (REPORTS_DIR / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
-    (REPORTS_DIR / "summary.md").write_text(summary_markdown(metrics), encoding="utf-8")
-    print(summary_markdown(metrics))
+    print(write_summary())
     # The sample is printed only: reports/summary.md feeds the README, which should
     # not list live phishing hosts.
     print(f"Random sample of missed hosts (defanged, seed {SEED}):")
