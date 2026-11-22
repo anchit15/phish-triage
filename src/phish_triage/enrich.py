@@ -437,6 +437,8 @@ def read_certificate(host: str, port: int = DEFAULT_TLS_PORT) -> tuple[str, str]
                 der = tls.getpeercert(binary_form=True)
     except TimeoutError as exc:
         raise EnrichmentError(f"TLS handshake timed out after {get_timeout():g}s") from exc
+    except socket.gaierror as exc:
+        raise EnrichmentError("TLS skipped: host name could not be resolved") from exc
     except OSError as exc:
         raise EnrichmentError(f"TLS handshake failed ({type(exc).__name__})") from exc
 
@@ -575,8 +577,10 @@ def enrich(url: str, touch: bool | None = None, now: datetime | None = None) -> 
     if touch is None:
         touch = not no_touch_from_env()
     now = now or datetime.now(UTC)
-    return Enrichment(
-        domain=enrich_domain(url, now),
-        host=enrich_host(url),
-        tls=enrich_tls(url, touch),
-    )
+    host = enrich_host(url)
+    if touch and host.ip is None:
+        tls = TlsInfo()
+        _note_missing(tls, "skipped: host did not resolve")
+    else:
+        tls = enrich_tls(url, touch)
+    return Enrichment(domain=enrich_domain(url, now), host=host, tls=tls)
