@@ -534,3 +534,24 @@ def test_enrich_url_without_host() -> None:
 
     assert result.domain.errors["registrar"] == "URL has no host"
     assert result.host.errors["ip"] == "URL has no host"
+
+
+def test_enrich_skips_tls_when_host_does_not_resolve(
+    http: FakeHttp, fake_dns: FakeDns, fake_tls: dict
+) -> None:
+    result = enrich.enrich("hxxps://gone[.]example[.]com/", touch=True, now=NOW)
+
+    assert fake_tls["connections"] == []
+    assert result.tls.errors["issuer"] == "skipped: host did not resolve"
+
+
+def test_read_certificate_name_resolution_failure_becomes_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def unresolvable(address: tuple[str, int], timeout: float) -> None:
+        raise enrich.socket.gaierror()
+
+    monkeypatch.setattr(enrich.socket, "create_connection", unresolvable)
+
+    with pytest.raises(enrich.EnrichmentError, match="host name could not be resolved"):
+        enrich.read_certificate("login.example.com")
