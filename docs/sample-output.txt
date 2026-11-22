@@ -1,0 +1,27 @@
+phish-triage 0.1.0 | 2026-11-22T20:32:48Z
+  URL            hxxps://allegrolokalnie[.]ogoszenie-8690384[.]sbs/
+  Verdict        PHISHING | probability >0.99 | threshold 0.80 (set for 98% precision on validation data)
+
+Model signals: top 5 SHAP contributions
+  + phishing    The host contains 7 digits; legitimate hosts in the training dataset have a median of 0.
+  + phishing    The host has 1 subdomain level in front of the registered domain, a common way to bury the real domain.
+  + phishing    The host is 37 characters long; legitimate hosts in the training dataset have a median of 15.
+  + phishing    The host contains 1 hyphen, common in brand-imitation domains such as secure-brand-login.
+  - legitimate  The registered name is 17 characters long; legitimate domains in the training dataset have a median of 10.
+
+Enrichment: registry, DNS and TLS facts (not used by the model)
+  Domain         ogoszenie-8690384[.]sbs | registered 2026-11-20 (2 days ago) | Hosting Concepts B.V. d/b/a Registrar.eu
+  Hosting        172[.]67[.]211[.]81 | AS13335 | Cloudflare, Inc.
+  ! CDN          Cloudflare is a CDN/reverse proxy: the origin server is hidden. Report to Cloudflare's abuse contact; they can identify the origin host.
+
+URL structure flags (not used by the model)
+  @ before host (hides real host)     no
+  // inside path (embedded redirect)  no
+
+Abuse contacts
+  Hosting (CDN)  abuse@cloudflare.com
+  Registrar      abuse@registrar.eu
+
+Unavailable
+  host (asn_name): not present in lookup response
+  tls (issuer, not_before): skipped: no-touch mode
