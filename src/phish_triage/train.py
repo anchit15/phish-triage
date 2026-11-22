@@ -29,6 +29,7 @@ SPLITS_DIR = Path("data/splits")
 MODEL_PATH = Path("models/model.joblib")
 TARGET_PRECISION = 0.98
 SEED = 42
+MIN_TLD_COUNT = 50
 
 
 def load_dataset(path: Path) -> pd.DataFrame:
@@ -124,6 +125,35 @@ def choose_threshold(y_true: np.ndarray, proba: np.ndarray, target_precision: fl
     return float(thresholds[meets_target[0]])
 
 
+def explanation_stats(model: Pipeline, x_fit: pd.DataFrame, y_fit: np.ndarray) -> dict:
+    """Summarise the training data for explaining single predictions later.
+
+    Args:
+        model: The fitted pipeline to be explained.
+        x_fit: The features it was fitted on.
+        y_fit: The matching labels (1 = phishing).
+
+    Returns:
+        ``background_mean``: mean of each transformed column (the SHAP baseline);
+        ``legitimate_medians``: median of each numeric feature over legitimate URLs;
+        ``tld_phishing_rate``: phishing share and count for TLDs with at least
+        ``MIN_TLD_COUNT`` training URLs.
+    """
+    transformed = model.named_steps["preprocess"].transform(x_fit)
+    legitimate = x_fit.loc[y_fit == 0, NUMERIC_FEATURES]
+    by_tld = pd.DataFrame({"tld": x_fit["tld"], "phishing": y_fit}).groupby("tld")["phishing"]
+    rates = by_tld.agg(["mean", "count"])
+    rates = rates[rates["count"] >= MIN_TLD_COUNT]
+    return {
+        "background_mean": np.asarray(transformed.mean(axis=0)).ravel(),
+        "legitimate_medians": {name: float(v) for name, v in legitimate.median().items()},
+        "tld_phishing_rate": {
+            tld: {"rate": round(float(row["mean"]), 4), "count": int(row["count"])}
+            for tld, row in rates.iterrows()
+        },
+    }
+
+
 def main() -> None:
     """Train both candidates, pick one on validation data, and save the bundle."""
     df = load_dataset(DATA_PATH)
@@ -162,6 +192,7 @@ def main() -> None:
             "target_precision": TARGET_PRECISION,
             "validation_roc_auc": val_auc,
             "features": MODEL_FEATURES,
+            "explanation": explanation_stats(models[chosen], x_fit, y_fit),
         },
         MODEL_PATH,
     )
