@@ -36,6 +36,65 @@ SUSPICIOUS_KEYWORDS = (
     "auth",
 )
 
+# Registered domains of free hosting, site-builder, cloud, dynamic-DNS and IPFS-gateway
+# platforms where anyone can publish under a shared domain. Used for analysis and
+# evaluation grouping, not as a model feature.
+SHARED_PLATFORMS = frozenset(
+    {
+        "000webhostapp.com",
+        "amazonaws.com",
+        "appspot.com",
+        "azurewebsites.net",
+        "blogspot.com",
+        "cloudflare-ipfs.com",
+        "cpanel.site",
+        "dpdns.org",
+        "duckdns.org",
+        "dweb.link",
+        "eu.org",
+        "firebaseapp.com",
+        "framer.app",
+        "gitbook.io",
+        "github.io",
+        "glitch.me",
+        "godaddysites.com",
+        "google.com",
+        "herokuapp.com",
+        "infura-ipfs.io",
+        "ipfs.io",
+        "jimdosite.com",
+        "mystrikingly.com",
+        "netlify.app",
+        "pages.dev",
+        "r2.dev",
+        "repl.co",
+        "sharepoint.com",
+        "square.site",
+        "typedream.app",
+        "vercel.app",
+        "web.app",
+        "webflow.io",
+        "weebly.com",
+        "windows.net",
+        "wixsite.com",
+        "wordpress.com",
+        "workers.dev",
+        "yolasite.com",
+    }
+)
+# Added after reviewing the 2026-11-22 feed snapshot (issue #5); reported as such.
+SHARED_PLATFORMS_ADDED_FROM_FEED = frozenset(
+    {
+        "cpanel.site",
+        "dpdns.org",
+        "duckdns.org",
+        "eu.org",
+        "framer.app",
+        "gitbook.io",
+        "typedream.app",
+    }
+)
+
 NUMERIC_FEATURES = [
     "host_length",
     "digit_count",
