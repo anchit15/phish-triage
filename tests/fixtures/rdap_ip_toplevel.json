@@ -1,0 +1,17 @@
+{
+  "objectClassName": "ip network",
+  "handle": "198.51.100.0 - 198.51.100.255",
+  "name": "EXAMPLE-CLOUD-NET",
+  "entities": [
+    {
+      "objectClassName": "entity",
+      "roles": ["abuse"],
+      "vcardArray": ["vcard", [["version", {}, "text", "4.0"], ["email", {}, "text", "mailto:abuse@cloud.example"]]]
+    },
+    {
+      "objectClassName": "entity",
+      "roles": ["technical"],
+      "vcardArray": ["vcard", [["version", {}, "text", "4.0"], ["fn", {}, "text", "Cloud NOC"]]]
+    }
+  ]
+}

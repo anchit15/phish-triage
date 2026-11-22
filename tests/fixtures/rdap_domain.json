@@ -1,0 +1,34 @@
+{
+  "objectClassName": "domain",
+  "ldhName": "EXAMPLE.COM",
+  "events": [
+    {"eventAction": "last changed", "eventDate": "2026-11-21T10:00:00Z"},
+    {"eventAction": "registration", "eventDate": "2026-11-20T08:14:00Z"},
+    {"eventAction": "expiration", "eventDate": "2027-11-20T08:14:00Z"}
+  ],
+  "entities": [
+    {
+      "objectClassName": "entity",
+      "roles": ["registrar"],
+      "publicIds": [{"type": "IANA Registrar ID", "identifier": "9999"}],
+      "vcardArray": ["vcard", [["version", {}, "text", "4.0"], ["fn", {}, "text", "Example Registrar LLC"]]],
+      "entities": [
+        {
+          "objectClassName": "entity",
+          "roles": ["abuse"],
+          "vcardArray": ["vcard", [
+            ["version", {}, "text", "4.0"],
+            ["fn", {}, "text", "Abuse Desk"],
+            ["tel", {"type": "voice"}, "uri", "tel:+1.5555550100"],
+            ["email", {}, "text", "abuse@registrar.example"]
+          ]]
+        }
+      ]
+    },
+    {
+      "objectClassName": "entity",
+      "roles": ["registrant"],
+      "vcardArray": ["vcard", [["version", {}, "text", "4.0"], ["fn", {}, "text", "REDACTED FOR PRIVACY"]]]
+    }
+  ]
+}
